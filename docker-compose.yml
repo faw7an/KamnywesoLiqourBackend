@@ -1,0 +1,21 @@
+services:
+  kamnywesoDb:
+    container_name: kamnyweso-db
+    image: docker.io/library/postgres:18-alpine
+    environment:
+      POSTGRES_DB: kamnyweso
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin001
+      PGDATA: /data/postgres
+    volumes:
+      - db:/data/postgres
+    ports:
+      - "5332:5432"
+    networks:
+      - kamnyweso-network
+    restart: unless-stopped
+networks:
+  kamnyweso-network:
+    driver: bridge
+volumes:
+  db:

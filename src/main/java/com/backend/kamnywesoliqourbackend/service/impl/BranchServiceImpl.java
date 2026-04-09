@@ -32,9 +32,19 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    public Branch updateBranch(UUID id, Branch branch) {
-        branch.setId(id);
-        return branchRepository.save(branch);
+    public Branch updateBranch(UUID id, Branch branchUpdates) {
+        Branch existingBranch = branchRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Branch not found"));
+
+        existingBranch.setName(branchUpdates.getName());
+        existingBranch.setLocation(branchUpdates.getLocation());
+        existingBranch.setHq(branchUpdates.isHq());
+
+        if (branchUpdates.getManager() != null) {
+            existingBranch.setManager(branchUpdates.getManager());
+        }
+
+        return branchRepository.save(existingBranch);
     }
 
     @Override

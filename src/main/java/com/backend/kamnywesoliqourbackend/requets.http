@@ -1,0 +1,49 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+
+### 1. Create a Branch (HQ)
+POST http://localhost:8080/api/branch
+Content-Type: application/json
+
+{
+  "name": "Kamnyweso HQ",
+  "location": "Nairobi CBD",
+  "managerId": null,
+  "isHq": true
+}
+
+### 2. Create another Branch (Branch A)
+POST http://localhost:8080/api/branch
+Content-Type: application/json
+
+{
+  "name": "Westlands Branch",
+  "location": "Westlands Mall",
+  "managerId": null,
+  "isHq": false
+}
+
+### 3. Get All Branches
+GET http://localhost:8080/api/branch
+
+### 4. Get Single Branch
+# NOTE: Replace the UUID below with one you get from the "Get All Branches" request
+GET http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE
+
+### 5. Update a Branch
+# NOTE: Replace the UUID below
+PUT http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE
+Content-Type: application/json
+
+{
+  "name": "Westlands Branch - Updated",
+  "location": "Sarit Centre",
+  "managerId": null,
+  "isHq": false
+}
+
+### 6. Delete a Branch
+# NOTE: Replace the UUID below
+DELETE http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE

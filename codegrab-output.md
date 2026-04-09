@@ -8,6 +8,9 @@ KamnywesoLiqourBackend/
 │   │   │   └── com/
 │   │   │       └── backend/
 │   │   │           └── kamnywesoliqourbackend/
+│   │   │               ├── dto/
+│   │   │               │   └── req/
+│   │   │               │       └── LoginReq.java
 │   │   │               ├── entity/
 │   │   │               │   ├── Branch.java
 │   │   │               │   ├── DispatchItem.java
@@ -1109,6 +1112,16 @@ public class KamnywesoLiqourBackendApplication {
 
 ```
 
+## File: `src/main/java/com/backend/kamnywesoliqourbackend/dto/req/LoginReq.java`
+
+```java
+package com.backend.kamnywesoliqourbackend.dto.req;
+
+public record LoginReq() {
+}
+
+```
+
 ## File: `src/main/java/com/backend/kamnywesoliqourbackend/entity/Branch.java`
 
 ```java
@@ -2158,7 +2171,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyTransactionRepository loyaltyTransactionRepository;
     private final OrderService orderService;
 
-    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderServiceImpl orderService){
+    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderService orderService){
         this.loyaltyCustomerRepository = loyaltyCustomerRepository;
         this.loyaltyTransactionRepository = loyaltyTransactionRepository;
         this.orderService = orderService;
@@ -2212,7 +2225,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         transaction.setTransactionType(type);
 
         transaction.setPointsEarned(type == TransactionType.EARNED ?  points : 0);
-        transaction.setPointsEarned(type == TransactionType.EARNED ? points : 0);
+        transaction.setPointsEarned(type == TransactionType.REDEEMED ? points : 0);
 
         int currentPointBal = customer.getPointsBalance() == null ? 0 : customer.getPointsBalance();
 

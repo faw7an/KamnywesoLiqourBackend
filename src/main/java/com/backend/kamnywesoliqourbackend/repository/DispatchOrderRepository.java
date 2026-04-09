@@ -8,7 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DispatchOrderRepository extends JpaRepository<DispatchOrder, UUID> {
-    List<DispatchOrder> findByBranchId(UUID branchId);
 
     Optional<DispatchOrder> findByIdAndBranch_Id(UUID id, UUID branchId);
+
+    List<DispatchOrder> findByBranch_Id(UUID branchId);
 }

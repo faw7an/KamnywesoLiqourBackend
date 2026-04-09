@@ -60,7 +60,7 @@ public class DispatchServiceImpl implements DispatchService {
         if(branchId == null) {
             throw new RuntimeException("Branch id is required");
         }
-        return dispatchOrderRepository.findByBranchId(branchId);
+        return dispatchOrderRepository.findByBranch_Id(branchId);
     }
 
     @Override

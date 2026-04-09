@@ -101,7 +101,7 @@ loyalty_transactions (id, customer_id, order_id, points_earned,
 
 ### Auth (Both Portals)
 ```
-POST   /api/auth/login           → returns JWT + triggers OTP SMS
+POST   /api/auth/login           → returns JWT + triggers OTP email
 POST   /api/auth/verify-otp      → validates OTP, activates session
 POST   /api/auth/register        → creates pending user (requires approval)
 POST   /api/auth/logout          → invalidates JWT session
@@ -216,7 +216,7 @@ POST   /api/loyalty/{cardId}/earn          → add points after an order
 - **Branch scoping** — all branch queries must filter by `branch_id`. Never expose cross-branch data to branch clients.
 - **JWT** — every request (except `/api/auth/*`) must carry a valid JWT in the `Authorization: Bearer <token>` header.
 - **Roles enforced server-side** — `ADMIN` endpoints reject `MANAGER` and `CASHIER` tokens. Don't rely on the UI to enforce this.
-- **OTP** — sent via Africa's Talking SMS API. Use sandbox mode for demo.
+- **OTP** — OTPs are sent via Email using Spring Boot Mail + Resend SMTP
 - **CORS** — configure Spring Boot to allow requests from the React web client origin when that is added.
 - **ddl-auto=update** — Hibernate will auto-create tables from entities during development. Switch to `validate` before production.
 

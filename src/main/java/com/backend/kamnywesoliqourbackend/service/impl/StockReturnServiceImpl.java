@@ -1,6 +1,7 @@
 package com.backend.kamnywesoliqourbackend.service.impl;
 
 import com.backend.kamnywesoliqourbackend.entity.StockReturn;
+import com.backend.kamnywesoliqourbackend.enums.ReturnStatus;
 import com.backend.kamnywesoliqourbackend.repository.StockReturnRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.StockReturnService;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,8 @@ public class StockReturnServiceImpl implements StockReturnService {
     }
     @Override
     public StockReturn processStockReturn(UUID branchId, StockReturn stockReturn) {
-        return null;
+        stockReturn.setStatus(ReturnStatus.PENDING_REVIEW);
+        return stockReturnRepository.save(stockReturn);
     }
 
     @Override

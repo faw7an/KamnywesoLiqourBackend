@@ -6,6 +6,7 @@ import com.backend.kamnywesoliqourbackend.enums.TransactionType;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyCustomerRepository;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyTransactionRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.LoyaltyService;
+import com.backend.kamnywesoliqourbackend.service.interfaces.OrderService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,9 +16,9 @@ import java.util.UUID;
 public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyCustomerRepository loyaltyCustomerRepository;
     private final LoyaltyTransactionRepository loyaltyTransactionRepository;
-    private final OrderServiceImpl orderService;
+    private final OrderService orderService;
 
-    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderServiceImpl orderService){
+    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderService orderService){
         this.loyaltyCustomerRepository = loyaltyCustomerRepository;
         this.loyaltyTransactionRepository = loyaltyTransactionRepository;
         this.orderService = orderService;
@@ -30,7 +31,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     public List<LoyaltyCustomer> getLoyaltyCustomer(String query) {
-        return List.of();
+         return loyaltyCustomerRepository.findByNameContainingOrPhoneContainingOrCardIdContaining(query, query, query);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         transaction.setTransactionType(type);
 
         transaction.setPointsEarned(type == TransactionType.EARNED ?  points : 0);
-        transaction.setPointsEarned(type == TransactionType.EARNED ? points : 0);
+        transaction.setPointsEarned(type == TransactionType.REDEEMED ? points : 0);
 
         int currentPointBal = customer.getPointsBalance() == null ? 0 : customer.getPointsBalance();
 

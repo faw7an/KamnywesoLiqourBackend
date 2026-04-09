@@ -79,7 +79,8 @@ KamnywesoLiqourBackend/
 ├── docker-compose.yml
 ├── mvnw
 ├── mvnw.cmd
-└── pom.xml
+├── pom.xml
+└── roadmap.md
 ```
 
 # Project Files
@@ -190,7 +191,7 @@ loyalty_transactions (id, customer_id, order_id, points_earned,
 
 ### Auth (Both Portals)
 ```
-POST   /api/auth/login           → returns JWT + triggers OTP SMS
+POST   /api/auth/login           → returns JWT + triggers OTP email
 POST   /api/auth/verify-otp      → validates OTP, activates session
 POST   /api/auth/register        → creates pending user (requires approval)
 POST   /api/auth/logout          → invalidates JWT session
@@ -305,7 +306,7 @@ POST   /api/loyalty/{cardId}/earn          → add points after an order
 - **Branch scoping** — all branch queries must filter by `branch_id`. Never expose cross-branch data to branch clients.
 - **JWT** — every request (except `/api/auth/*`) must carry a valid JWT in the `Authorization: Bearer <token>` header.
 - **Roles enforced server-side** — `ADMIN` endpoints reject `MANAGER` and `CASHIER` tokens. Don't rely on the UI to enforce this.
-- **OTP** — sent via Africa's Talking SMS API. Use sandbox mode for demo.
+- **OTP** — OTPs are sent via Email using Spring Boot Mail + Resend SMTP
 - **CORS** — configure Spring Boot to allow requests from the React web client origin when that is added.
 - **ddl-auto=update** — Hibernate will auto-create tables from entities during development. Switch to `validate` before production.
 
@@ -1042,6 +1043,54 @@ Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
 
 ```
 
+## File: `roadmap.md`
+
+```markdown
+
+```markdown
+# 🗺️ Kamnyweso Liquor - Backend Roadmap
+
+## ✅ PHASE 1: Data Layer (COMPLETED)
+- [x] Define Database Schema & Architecture
+- [x] Create JPA Entities mapping to tables
+- [x] Configure relationships (One-to-Many, Many-to-One)
+- [x] Set up Spring Data JPA Repositories
+- [x] Configure PostgreSQL connection via `docker-compose`
+
+## ✅ PHASE 2: Business Logic / Service Layer (COMPLETED)
+- [x] `BranchService`: HQ and branch lookups
+- [x] `UserService`: Registration, approval, suspension
+- [x] `OrderService`: Order creation and status management
+- [x] `StockService`: Stock lookups and dynamic restocking
+- [x] `DispatchService`: HQ dispatch creation and branch confirmation
+- [x] `StockReturnService`: Damaged goods tracking
+- [x] `LoyaltyService`: Point accumulation and redemption math
+- [x] `ReportService`: Sales aggregations by date/branch
+
+## 🚧 PHASE 3: API & Web Layer (IN PROGRESS)
+- [x] Define DTO (Data Transfer Object) architecture (Records)
+- [ ] Create `BranchController` (In Progress)
+- [ ] Create `OrderController`
+- [ ] Create `StockController` & `DispatchController`
+- [ ] Create `LoyaltyController`
+- [ ] Create `ReportController`
+- [ ] Build a Global Exception Handler (`@ControllerAdvice`) for clean JSON error messages
+
+## ⏳ PHASE 4: Security & Authentication (PENDING)
+- [ ] Add `spring-boot-starter-mail` & configure **Resend SMTP**
+- [ ] Implement OTP Generation & Email dispatch
+- [ ] Set up Spring Security Filter Chain
+- [ ] Implement JWT Token Generation & Validation
+- [ ] Create Role-Based Access Control (`@PreAuthorize("hasRole('ADMIN')")`)
+- [ ] Build `/api/auth/` controllers (Login, Verify, Register)
+
+## ⏳ PHASE 5: Production Readiness (PENDING)
+- [ ] Configure CORS for Frontend integration
+- [ ] Add pagination for large lists (Orders, Transactions)
+- [ ] (Optional) Add Swagger/OpenAPI documentation
+- [ ] Switch `ddl-auto` from `update` to `validate`
+```
+
 ## File: `src/main/java/com/backend/kamnywesoliqourbackend/KamnywesoLiqourBackendApplication.java`
 
 ```java
@@ -1705,12 +1754,14 @@ import com.backend.kamnywesoliqourbackend.entity.DispatchOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface DispatchOrderRepository extends JpaRepository<DispatchOrder, UUID> {
-    List<DispatchOrder> findByBranchId(UUID branchId);
 
-    DispatchOrder findByIdAndBranch_Id(UUID id, UUID branchId);
+    Optional<DispatchOrder> findByIdAndBranch_Id(UUID id, UUID branchId);
+
+    List<DispatchOrder> findByBranch_Id(UUID branchId);
 }
 
 ```
@@ -1738,9 +1789,11 @@ package com.backend.kamnywesoliqourbackend.repository;
 import com.backend.kamnywesoliqourbackend.entity.LoyaltyCustomer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface LoyaltyCustomerRepository extends JpaRepository<LoyaltyCustomer, UUID> {
+    List<LoyaltyCustomer> findByNameContainingOrPhoneContainingOrCardIdContaining(String query, String query1, String query2);
 }
 
 ```
@@ -1785,11 +1838,13 @@ package com.backend.kamnywesoliqourbackend.repository;
 import com.backend.kamnywesoliqourbackend.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByBranch_Id(UUID branchId);
+    List<Order> findByBranch_IdAndCreatedAtBetween(UUID branchId, LocalDateTime start, LocalDateTime end);
 }
 
 ```
@@ -1807,9 +1862,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public interface ReportRepository extends JpaRepository<Report, UUID> {
-    List<Order> getSalesReport(UUID branchId, LocalDate dateFrom, LocalDate dateTo);
-}
+public interface ReportRepository extends JpaRepository<Report, UUID> {}
 
 ```
 
@@ -2066,7 +2119,7 @@ public class DispatchServiceImpl implements DispatchService {
         if(branchId == null) {
             throw new RuntimeException("Branch id is required");
         }
-        return dispatchOrderRepository.findByBranchId(branchId);
+        return dispatchOrderRepository.findByBranch_Id(branchId);
     }
 
     @Override
@@ -2074,9 +2127,9 @@ public class DispatchServiceImpl implements DispatchService {
         if(id == null || branchId == null) {
             throw new RuntimeException("Dispatch id and branch id are required");
         }
-        DispatchOrder dispatchOrder = dispatchOrderRepository.findByIdAndBranch_Id(id, branchId);
+        DispatchOrder dispatchOrder = dispatchOrderRepository.findByIdAndBranch_Id(id, branchId).orElseThrow(()-> new RuntimeException("Dispatch not found"));
         dispatchOrder.setStatus(DispatchStatus.CONFIRMED);
-        return dispatchOrder;
+        return dispatchOrderRepository.save(dispatchOrder);
     }
 }
 
@@ -2093,6 +2146,7 @@ import com.backend.kamnywesoliqourbackend.enums.TransactionType;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyCustomerRepository;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyTransactionRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.LoyaltyService;
+import com.backend.kamnywesoliqourbackend.service.interfaces.OrderService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -2102,7 +2156,7 @@ import java.util.UUID;
 public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyCustomerRepository loyaltyCustomerRepository;
     private final LoyaltyTransactionRepository loyaltyTransactionRepository;
-    private final OrderServiceImpl orderService;
+    private final OrderService orderService;
 
     public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderServiceImpl orderService){
         this.loyaltyCustomerRepository = loyaltyCustomerRepository;
@@ -2117,7 +2171,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     public List<LoyaltyCustomer> getLoyaltyCustomer(String query) {
-        return List.of();
+         return loyaltyCustomerRepository.findByNameContainingOrPhoneContainingOrCardIdContaining(query, query, query);
     }
 
     @Override
@@ -2149,11 +2203,29 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         if(customerId == null || orderId == null || type == null || points == null) {
             throw new RuntimeException("All fields are required");
         }
+
+        LoyaltyCustomer customer = loyaltyCustomerRepository.findById(customerId).orElseThrow(()-> new RuntimeException("Customer not found"));
+
         LoyaltyTransaction transaction = new LoyaltyTransaction();
-        transaction.setCustomer(loyaltyCustomerRepository.findById(customerId).orElseThrow(()-> new RuntimeException("Customer not found")));
+        transaction.setCustomer(customer);
         transaction.setOrder(orderService.getOrderById(orderId));
-        transaction.setPointsEarned(points);
         transaction.setTransactionType(type);
+
+        transaction.setPointsEarned(type == TransactionType.EARNED ?  points : 0);
+        transaction.setPointsEarned(type == TransactionType.EARNED ? points : 0);
+
+        int currentPointBal = customer.getPointsBalance() == null ? 0 : customer.getPointsBalance();
+
+        if (type == TransactionType.EARNED) {
+            customer.setPointsBalance(currentPointBal + points);
+        } else if (type == TransactionType.REDEEMED) {
+            if (currentPointBal < points) {
+                throw new RuntimeException("Insufficient points to redeem");
+            }
+            customer.setPointsBalance(currentPointBal - points);
+        }
+        loyaltyCustomerRepository.save(customer);
+        loyaltyTransactionRepository.save(transaction);
 
         return transaction;
     }
@@ -2222,6 +2294,7 @@ package com.backend.kamnywesoliqourbackend.service.impl;
 
 import com.backend.kamnywesoliqourbackend.entity.Order;
 import com.backend.kamnywesoliqourbackend.entity.Report;
+import com.backend.kamnywesoliqourbackend.repository.OrderRepository;
 import com.backend.kamnywesoliqourbackend.repository.ReportRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.ReportService;
 import org.springframework.stereotype.Service;
@@ -2234,14 +2307,16 @@ import java.util.UUID;
 @Service
 public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
+    private final OrderRepository orderRepository;
 
-    public ReportServiceImpl(ReportRepository reportRepository){
+    public ReportServiceImpl(ReportRepository reportRepository, OrderRepository orderRepository){
         this.reportRepository = reportRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
     public List<Order> getSalesReport(UUID branchId, LocalDate dateFrom, LocalDate dateTo) {
-        return reportRepository.getSalesReport(branchId, dateFrom, dateTo);
+        return orderRepository.findByBranch_IdAndCreatedAtBetween(branchId, dateFrom.atStartOfDay(), dateTo.plusDays(1).atStartOfDay());
     }
 
     @Override
@@ -2263,6 +2338,7 @@ public class ReportServiceImpl implements ReportService {
 package com.backend.kamnywesoliqourbackend.service.impl;
 
 import com.backend.kamnywesoliqourbackend.entity.StockReturn;
+import com.backend.kamnywesoliqourbackend.enums.ReturnStatus;
 import com.backend.kamnywesoliqourbackend.repository.StockReturnRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.StockReturnService;
 import org.springframework.stereotype.Service;
@@ -2284,7 +2360,8 @@ public class StockReturnServiceImpl implements StockReturnService {
     }
     @Override
     public StockReturn processStockReturn(UUID branchId, StockReturn stockReturn) {
-        return null;
+        stockReturn.setStatus(ReturnStatus.PENDING_REVIEW);
+        return stockReturnRepository.save(stockReturn);
     }
 
     @Override
@@ -2314,7 +2391,10 @@ public class StockReturnServiceImpl implements StockReturnService {
 ```java
 package com.backend.kamnywesoliqourbackend.service.impl;
 
+import com.backend.kamnywesoliqourbackend.entity.Branch;
+import com.backend.kamnywesoliqourbackend.entity.Drink;
 import com.backend.kamnywesoliqourbackend.entity.Stock;
+import com.backend.kamnywesoliqourbackend.repository.BranchRepository;
 import com.backend.kamnywesoliqourbackend.repository.DrinkRepository;
 import com.backend.kamnywesoliqourbackend.repository.StockRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.StockService;
@@ -2328,10 +2408,13 @@ import java.util.UUID;
 public class StockServiceImpl implements StockService {
     private final StockRepository stockRepository;
     private final DrinkRepository drinkRepository;
+    private final BranchRepository branchRepository;
 
-    public StockServiceImpl(StockRepository stockRepository, DrinkRepository drinkRepository){
+
+    public StockServiceImpl(StockRepository stockRepository, DrinkRepository drinkRepository, BranchRepository branchRepository){
         this.stockRepository = stockRepository;
         this.drinkRepository = drinkRepository;
+        this.branchRepository = branchRepository;
     }
 
     @Override
@@ -2363,7 +2446,8 @@ public class StockServiceImpl implements StockService {
             throw new RuntimeException("Quantity must be greater than 0");
         }
 
-        drinkRepository.findById(drinkId).orElseThrow(() -> new RuntimeException("Drink not found"));
+        Drink drink = drinkRepository.findById(drinkId).orElseThrow(() -> new RuntimeException("Drink not found"));
+        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new RuntimeException("Branch not found"));
 
         Optional<Stock> existingStock = stockRepository.findByDrink_IdAndBranch_Id(drinkId, branchId);
         if(existingStock.isPresent()) {
@@ -2371,7 +2455,12 @@ public class StockServiceImpl implements StockService {
             stock.setQuantity(stock.getQuantity() + quantity);
             return stockRepository.save(stock);
         } else{
-            throw new RuntimeException("Stock not found");
+            Stock newStock = new Stock();
+            newStock.setDrink(drink);
+            newStock.setBranch(branch);
+            newStock.setQuantity(quantity);
+            newStock.setMinThreshold(10);
+            return stockRepository.save(newStock);
         }
     }
 

@@ -68,8 +68,8 @@ public class DispatchServiceImpl implements DispatchService {
         if(id == null || branchId == null) {
             throw new RuntimeException("Dispatch id and branch id are required");
         }
-        DispatchOrder dispatchOrder = dispatchOrderRepository.findByIdAndBranch_Id(id, branchId);
+        DispatchOrder dispatchOrder = dispatchOrderRepository.findByIdAndBranch_Id(id, branchId).orElseThrow(()-> new RuntimeException("Dispatch not found"));
         dispatchOrder.setStatus(DispatchStatus.CONFIRMED);
-        return dispatchOrder;
+        return dispatchOrderRepository.save(dispatchOrder);
     }
 }

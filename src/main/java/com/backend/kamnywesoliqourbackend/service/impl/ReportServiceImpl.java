@@ -2,6 +2,7 @@ package com.backend.kamnywesoliqourbackend.service.impl;
 
 import com.backend.kamnywesoliqourbackend.entity.Order;
 import com.backend.kamnywesoliqourbackend.entity.Report;
+import com.backend.kamnywesoliqourbackend.repository.OrderRepository;
 import com.backend.kamnywesoliqourbackend.repository.ReportRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.ReportService;
 import org.springframework.stereotype.Service;
@@ -14,14 +15,16 @@ import java.util.UUID;
 @Service
 public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
+    private final OrderRepository orderRepository;
 
-    public ReportServiceImpl(ReportRepository reportRepository){
+    public ReportServiceImpl(ReportRepository reportRepository, OrderRepository orderRepository){
         this.reportRepository = reportRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
     public List<Order> getSalesReport(UUID branchId, LocalDate dateFrom, LocalDate dateTo) {
-        return reportRepository.getSalesReport(branchId, dateFrom, dateTo);
+        return orderRepository.findByBranch_IdAndCreatedAtBetween(branchId, dateFrom.atStartOfDay(), dateTo.plusDays(1).atStartOfDay());
     }
 
     @Override

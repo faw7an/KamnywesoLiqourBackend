@@ -62,11 +62,29 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         if(customerId == null || orderId == null || type == null || points == null) {
             throw new RuntimeException("All fields are required");
         }
+
+        LoyaltyCustomer customer = loyaltyCustomerRepository.findById(customerId).orElseThrow(()-> new RuntimeException("Customer not found"));
+
         LoyaltyTransaction transaction = new LoyaltyTransaction();
-        transaction.setCustomer(loyaltyCustomerRepository.findById(customerId).orElseThrow(()-> new RuntimeException("Customer not found")));
+        transaction.setCustomer(customer);
         transaction.setOrder(orderService.getOrderById(orderId));
-        transaction.setPointsEarned(points);
         transaction.setTransactionType(type);
+
+        transaction.setPointsEarned(type == TransactionType.EARNED ?  points : 0);
+        transaction.setPointsEarned(type == TransactionType.EARNED ? points : 0);
+
+        int currentPointBal = customer.getPointsBalance() == null ? 0 : customer.getPointsBalance();
+
+        if (type == TransactionType.EARNED) {
+            customer.setPointsBalance(currentPointBal + points);
+        } else if (type == TransactionType.REDEEMED) {
+            if (currentPointBal < points) {
+                throw new RuntimeException("Insufficient points to redeem");
+            }
+            customer.setPointsBalance(currentPointBal - points);
+        }
+        loyaltyCustomerRepository.save(customer);
+        loyaltyTransactionRepository.save(transaction);
 
         return transaction;
     }

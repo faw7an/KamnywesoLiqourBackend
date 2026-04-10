@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -29,6 +30,8 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "loyalty_card_id")
     private LoyaltyCustomer loyaltyCustomer;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
     @ManyToOne
     @JoinColumn(name = "staff_id")
     private User staff;

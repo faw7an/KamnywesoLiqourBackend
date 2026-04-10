@@ -5,6 +5,7 @@ import com.backend.kamnywesoliqourbackend.entity.LoyaltyTransaction;
 import com.backend.kamnywesoliqourbackend.enums.TransactionType;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyCustomerRepository;
 import com.backend.kamnywesoliqourbackend.repository.LoyaltyTransactionRepository;
+import com.backend.kamnywesoliqourbackend.repository.OrderRepository;
 import com.backend.kamnywesoliqourbackend.service.interfaces.LoyaltyService;
 import com.backend.kamnywesoliqourbackend.service.interfaces.OrderService;
 import org.springframework.stereotype.Service;
@@ -16,12 +17,12 @@ import java.util.UUID;
 public class LoyaltyServiceImpl implements LoyaltyService {
     private final LoyaltyCustomerRepository loyaltyCustomerRepository;
     private final LoyaltyTransactionRepository loyaltyTransactionRepository;
-    private final OrderService orderService;
+    private final OrderRepository orderRepository;
 
-    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderService orderService){
+    public LoyaltyServiceImpl(LoyaltyCustomerRepository loyaltyCustomerRepository , LoyaltyTransactionRepository loyaltyTransactionRepository, OrderRepository orderRepository ){
         this.loyaltyCustomerRepository = loyaltyCustomerRepository;
         this.loyaltyTransactionRepository = loyaltyTransactionRepository;
-        this.orderService = orderService;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -68,11 +69,11 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         LoyaltyTransaction transaction = new LoyaltyTransaction();
         transaction.setCustomer(customer);
-        transaction.setOrder(orderService.getOrderById(orderId));
+        transaction.setOrder(orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("Order not found")));
         transaction.setTransactionType(type);
 
         transaction.setPointsEarned(type == TransactionType.EARNED ?  points : 0);
-        transaction.setPointsEarned(type == TransactionType.REDEEMED ? points : 0);
+        transaction.setPointsRedeemed(type == TransactionType.REDEEMED ? points : 0);
 
         int currentPointBal = customer.getPointsBalance() == null ? 0 : customer.getPointsBalance();
 

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record StockRes(
         UUID id,
+        UUID drinkId,
         String drinkName,
         Integer quantity,
         Integer minThreshold,

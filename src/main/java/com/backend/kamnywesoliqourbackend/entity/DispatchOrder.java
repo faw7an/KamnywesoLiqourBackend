@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -27,6 +28,8 @@ public class DispatchOrder {
     private String driverName;
     private String vehiclePlate;
     private String notes;
+    @OneToMany(mappedBy = "dispatchOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DispatchItem> dispatchItems;
     @Enumerated(EnumType.STRING)
     private DispatchStatus status;
     private LocalDateTime dispatchedAt;

@@ -2,7 +2,7 @@ package com.backend.kamnywesoliqourbackend.dto.res;
 
 import com.backend.kamnywesoliqourbackend.enums.DispatchStatus;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record DispatchOrderRes(
@@ -11,6 +11,7 @@ public record DispatchOrderRes(
         String branchName,
         DispatchStatus status,
         String driverName,
-        String vehiclePlate
+        String vehiclePlate,
+        List<DispatchItemRes> items
 ) {
 }

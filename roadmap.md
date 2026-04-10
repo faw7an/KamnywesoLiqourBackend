@@ -1,5 +1,3 @@
-
-```markdown
 # 🗺️ Kamnyweso Liquor - Backend Roadmap
 
 ## ✅ PHASE 1: Data Layer (COMPLETED)
@@ -18,17 +16,21 @@
 - [x] `StockReturnService`: Damaged goods tracking
 - [x] `LoyaltyService`: Point accumulation and redemption math
 - [x] `ReportService`: Sales aggregations by date/branch
+- [x] `DrinkService`: Product catalogue management
 
-## 🚧 PHASE 3: API & Web Layer (IN PROGRESS)
+## ✅ PHASE 3: API & Web Layer (COMPLETED)
 - [x] Define DTO (Data Transfer Object) architecture (Records)
-- [ ] Create `BranchController` (In Progress)
-- [ ] Create `OrderController`
-- [ ] Create `StockController` & `DispatchController`
-- [ ] Create `LoyaltyController`
-- [ ] Create `ReportController`
+- [x] Create `BranchController` (Full CRUD)
+- [x] Create `UserController` (Staff Management)
+- [x] Create `DrinkController` (Product Management)
+- [x] Create `OrderController` (Checkout & Stock Deduction)
+- [x] Create `StockController` & `DispatchController` (Inventory & Internal Transfers)
+- [x] Create `LoyaltyController` (Customer Rewards)
+- [x] Create `StockReturnController` (Damaged Goods)
+- [x] Create `ReportController` (Sales & Profit Analysis)
 - [ ] Build a Global Exception Handler (`@ControllerAdvice`) for clean JSON error messages
 
-## ⏳ PHASE 4: Security & Authentication (PENDING)
+## 🚧 PHASE 4: Security & Authentication (NEXT UP)
 - [ ] Add `spring-boot-starter-mail` & configure **Resend SMTP**
 - [ ] Implement OTP Generation & Email dispatch
 - [ ] Set up Spring Security Filter Chain

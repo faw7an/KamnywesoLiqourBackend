@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record DispatchReq(
         UUID branchId,
+        UUID createdBy,
         String driverName,
         String vehiclePlate,
         String notes,

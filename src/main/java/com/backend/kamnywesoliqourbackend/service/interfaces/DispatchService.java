@@ -1,5 +1,6 @@
 package com.backend.kamnywesoliqourbackend.service.interfaces;
 
+import com.backend.kamnywesoliqourbackend.dto.req.DispatchReq;
 import com.backend.kamnywesoliqourbackend.entity.DispatchOrder;
 import com.backend.kamnywesoliqourbackend.enums.DispatchStatus;
 
@@ -8,9 +9,10 @@ import java.util.UUID;
 
 public interface DispatchService {
     List<DispatchOrder> getAllDispatches();
-    DispatchOrder createDispatch(DispatchOrder dispatchOrder);
+//    DispatchOrder createDispatch(DispatchOrder dispatchOrder);
     DispatchOrder approveDispatch(UUID id);
     DispatchOrder getDispatch(UUID id);
+    DispatchOrder createDispatch(DispatchReq req);
     DispatchOrder updateDispatchStatus(UUID id, DispatchStatus status);
     List<DispatchOrder> getBranchDispatch(UUID branchId);
     DispatchOrder confirmBranchDispatch(UUID id,UUID branchId);

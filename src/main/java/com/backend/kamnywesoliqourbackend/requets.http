@@ -1,49 +1,150 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+### ==========================================
+### 1. BRANCH MODULE
+### ==========================================
 
-
-### 1. Create a Branch (HQ)
+### 1a. Create HQ
 POST http://localhost:8080/api/branch
 Content-Type: application/json
 
 {
-  "name": "Kamnyweso HQ",
+  "name": "Main Warehouse HQ",
   "location": "Nairobi CBD",
-  "managerId": null,
   "isHq": true
 }
 
-### 2. Create another Branch (Branch A)
+### 1b. Create a Branch (COPY THE ID FROM THIS RESPONSE)
 POST http://localhost:8080/api/branch
 Content-Type: application/json
 
 {
   "name": "Westlands Branch",
-  "location": "Westlands Mall",
-  "managerId": null,
+  "location": "Sarit Centre",
   "isHq": false
 }
 
-### 3. Get All Branches
+### 1c. Get All Branches
 GET http://localhost:8080/api/branch
 
-### 4. Get Single Branch
-# NOTE: Replace the UUID below with one you get from the "Get All Branches" request
-GET http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE
 
-### 5. Update a Branch
-# NOTE: Replace the UUID below
-PUT http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE
+### ==========================================
+### 2. DRINK MODULE (Product Catalogue)
+### ==========================================
+
+### 2a. Create a Drink (COPY THE ID FROM THIS RESPONSE)
+POST http://localhost:8080/api/drinks
 Content-Type: application/json
 
 {
-  "name": "Westlands Branch - Updated",
-  "location": "Sarit Centre",
-  "managerId": null,
-  "isHq": false
+  "name": "Tusker Lager",
+  "brand": "EABL",
+  "price": 250.00,
+  "category": "Beer",
+  "image": "🍺"
 }
 
-### 6. Delete a Branch
-# NOTE: Replace the UUID below
-DELETE http://localhost:8080/api/branch/PASTE_YOUR_UUID_HERE
+### 2b. Get All Drinks
+GET http://localhost:8080/api/drinks
+
+
+### ==========================================
+### 3. STOCK MODULE (Inventory)
+### ==========================================
+
+### 3a. Restock a Branch (Use Branch ID from #1b and Drink ID from #2a)
+POST http://localhost:8080/api/stock/restock
+Content-Type: application/json
+
+{
+  "branchId": "PASTE_BRANCH_ID_HERE",
+  "drinkId": "PASTE_DRINK_ID_HERE",
+  "quantity": 100
+}
+
+### 3b. Check Stock for Branch
+GET http://localhost:8080/api/stock/branch/PASTE_BRANCH_ID_HERE
+
+
+### ==========================================
+### 4. LOYALTY MODULE
+### ==========================================
+
+### 4a. Register a Customer (COPY THE ID FROM THIS RESPONSE)
+POST http://localhost:8080/api/loyalty
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "phone": "0712345678",
+  "cardId": "LOYAL-001",
+  "tier": "BRONZE",
+  "pointsBalance": 0
+}
+
+### 4b. Search Customer
+GET http://localhost:8080/api/loyalty/search?q=0712345678
+
+
+### ==========================================
+### 5. ORDER MODULE (The Sale)
+### ==========================================
+
+### 5a. Place an Order (This will deduct stock and add loyalty points)
+# Use BranchID (#1b), LoyaltyID (#4a), and DrinkID (#2a)
+# Note: Since we don't have a staff login yet, use a random UUID for staffId
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "branchId": "PASTE_BRANCH_ID_HERE",
+  "customerName": "John Doe",
+  "customerPhoneNumber": "0712345678",
+  "loyaltyCardId": "PASTE_LOYALTY_CUSTOMER_ID_HERE",
+  "staffId": "550e8400-e29b-41d4-a716-446655440000",
+  "items": [
+    {
+      "drinkId": "PASTE_DRINK_ID_HERE",
+      "quantity": 2
+    }
+  ]
+}
+
+### 5b. Get Order History for Branch
+GET http://localhost:8080/api/orders/branch/PASTE_BRANCH_ID_HERE
+
+
+### ==========================================
+### 6. DISPATCH MODULE (HQ to Branch)
+### ==========================================
+
+### 6a. Create a Dispatch (Truck leaving HQ)
+POST http://localhost:8080/api/dispatch
+Content-Type: application/json
+
+{
+  "branchId": "PASTE_BRANCH_ID_HERE",
+  "createdBy": "550e8400-e29b-41d4-a716-446655440000",
+  "driverName": "Kamau Driver",
+  "vehiclePlate": "KCD 123X",
+  "notes": "Fragile items",
+  "items": [
+    {
+      "drinkId": "PASTE_DRINK_ID_HERE",
+      "quantity": 50
+    }
+  ]
+}
+
+### 6b. Confirm Receipt (Run this to update branch stock)
+# Replace {id} with DispatchID from #6a and {branchId} from #1b
+PATCH http://localhost:8080/api/dispatch/PASTE_DISPATCH_ID_HERE/confirm/PASTE_BRANCH_ID_HERE
+
+
+### ==========================================
+### 7. REPORTS MODULE
+### ==========================================
+
+### 7a. Get Sales Report (Replace UUID and dates)
+GET http://localhost:8080/api/reports/sales/PASTE_BRANCH_ID_HERE?from=2023-01-01&to=2026-12-31
+
+### 7b. Get Profit Report
+GET http://localhost:8080/api/reports/profit/PASTE_BRANCH_ID_HERE?from=2023-01-01&to=2026-12-31

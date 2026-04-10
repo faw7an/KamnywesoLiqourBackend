@@ -1,7 +1,6 @@
 package com.backend.kamnywesoliqourbackend.dto.res;
 
 import com.backend.kamnywesoliqourbackend.enums.ReturnStatus;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,6 +10,7 @@ public record StockReturnRes(
         String drinkName,
         Integer quantity,
         String reason,
-        ReturnStatus status
-) {
-}
+        ReturnStatus status,
+        String hqResponse,
+        LocalDateTime createdAt
+) {}

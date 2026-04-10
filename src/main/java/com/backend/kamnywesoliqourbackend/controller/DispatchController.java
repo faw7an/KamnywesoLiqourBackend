@@ -54,6 +54,8 @@ public class DispatchController {
                 dispatchOrder.getStatus(),             // 4. status
                 dispatchOrder.getDriverName(),         // 5. driverName
                 dispatchOrder.getVehiclePlate(),       // 6. vehiclePlate
+                null,                                  // notes
+                null,                                  // dispatchedAt
                 dispatchItemDto                        // 7. items
         );
     }

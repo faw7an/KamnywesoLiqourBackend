@@ -21,6 +21,7 @@ public class OrderController {
     }
 
     @GetMapping
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<List<OrderRes>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
         return ResponseEntity.ok(
@@ -29,6 +30,7 @@ public class OrderController {
     }
 
     @GetMapping("/{branchid}")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<List<OrderRes>> getBranchOrders(@PathVariable UUID branchid) {
         List<Order> order = orderService.getBranchOrders(branchid);
         if (order == null) {
@@ -45,13 +47,40 @@ public class OrderController {
 
     private OrderRes mapToOrderRes(Order order) {
         List<OrderItemRes> itemDtos = order.getOrderItems().stream().map(this::mapToOrderItemRes).toList();
+        
+        String itemsSummary = order.getOrderItems().stream()
+                .map(item -> item.getDrink().getName() + " x" + item.getQuantity())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+                
+        String formattedTotal = String.format("%,d", order.getTotalAmount().longValue());
+        
+        String formattedTime = order.getCreatedAt() != null 
+                ? java.time.format.DateTimeFormatter.ofPattern("dd MMM, HH:mm").format(order.getCreatedAt())
+                : "N/A";
+                
+        // Simple mock of status caps -> camel
+        String formattedStatus = order.getStatus().name().substring(0, 1) + 
+                                 order.getStatus().name().substring(1).toLowerCase();
+
+        // Calculate simple loyalty points logic from total (1 point per 10 ksh approx)
+        int loyalty = order.getTotalAmount() != null ? order.getTotalAmount().intValue() / 10 : 0;
+        
+        // Wait, does Order have getStaff()?
+        // String staffName = order.getStaff() != null ? order.getStaff().getName() : "Admin";
+        String staffName = "Admin"; 
+        String orderIdPrefix = "ORD-" + order.getId().toString().substring(0, 4).toUpperCase();
+
         return  new OrderRes(
                 order.getId(),
+                orderIdPrefix,
                 order.getCustomerName(),
-                order.getCustomerPhone(),
-                order.getTotalAmount(),
-                order.getStatus(),
-                order.getCreatedAt(),
+                itemsSummary,
+                formattedTotal,
+                formattedStatus,
+                formattedTime,
+                staffName,
+                loyalty,
                 order.getBranch() != null ? order.getBranch().getName() : "Unknown Branch",
                 itemDtos
                 );

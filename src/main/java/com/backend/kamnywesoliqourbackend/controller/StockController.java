@@ -44,13 +44,27 @@ public class StockController {
 
 
     private StockRes mapToStockRes(Stock stock) {
+        String status = "OK";
+        if (stock.getQuantity() == 0) status = "Out of Stock";
+        else if (stock.getQuantity() < stock.getMinThreshold()) status = "Critical";
+        else if (stock.getQuantity() == stock.getMinThreshold()) status = "Low";
+
+        String restockedDate = stock.getLastRestockedAt() != null 
+            ? java.time.format.DateTimeFormatter.ofPattern("dd MMM").format(stock.getLastRestockedAt())
+            : "N/A";
+
         return new StockRes(
                 stock.getId(),
                 stock.getDrink().getId(),
                 stock.getDrink().getName(),
+                stock.getDrink().getBrand(),
+                stock.getBranch() != null ? stock.getBranch().getName() : "HQ",
                 stock.getQuantity(),
                 stock.getMinThreshold(),
-                stock.getLastRestockedAt()
+                status,
+                restockedDate,
+                stock.getDrink().getPrice(),
+                stock.getDrink().getImage()
         );
     }
 
